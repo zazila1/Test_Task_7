@@ -9,12 +9,17 @@ public class LaserVisual : MonoBehaviour
 
     private LineRenderer _LineRenderer;
     
-    void DrawLaser(Transform target)
+    public void DrawLaser(Transform target)
     {
         _LineRenderer.positionCount = 2;
             
         _LineRenderer.SetPosition(0, _LaserStartPoint.position);
         _LineRenderer.SetPosition(1, target.position);
+    }
+
+    public void StopLaser()
+    {
+        _LineRenderer.positionCount = 0;
     }
     
     void Start()

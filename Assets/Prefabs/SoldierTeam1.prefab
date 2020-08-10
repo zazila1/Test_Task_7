@@ -127,6 +127,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 6070011980152992449, guid: 86c77418b7577b44e9ce9744c85164a6,
+        type: 3}
+      propertyPath: m_TagString
+      value: Soldier
+      objectReference: {fileID: 0}
     - target: {fileID: 6070011980152992450, guid: 86c77418b7577b44e9ce9744c85164a6,
         type: 3}
       propertyPath: _Target
@@ -186,6 +191,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6070011980152992452, guid: 86c77418b7577b44e9ce9744c85164a6,
+        type: 3}
+      propertyPath: _EnemyLayerMask.m_Bits
+      value: 512
       objectReference: {fileID: 0}
     - target: {fileID: 6070011980719213317, guid: 86c77418b7577b44e9ce9744c85164a6,
         type: 3}

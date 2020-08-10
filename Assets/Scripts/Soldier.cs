@@ -8,18 +8,23 @@ public class Soldier : MonoBehaviour, IDamagable
 {
     [SerializeField] private Team _Team;
     [SerializeField] private SoldierParams _SoldierParams;
-
+    [SerializeField] private LayerMask _EnemyLayerMask;
+    
+    private LaserVisual _LaserVisual;
+    
     private float _SearchRadius = 100f;
     private Collider[] _OverlapResults = new Collider[6];
-    private LayerMask _EnemyLayerMask;
 
-    private IDamagable _CurrentTarget;
+    private GameObject _CurrentTarget = null;
     private bool _CanShoot;
-    
+    private float _PassiveEnemySearchingDelay = 1f;
     
     private void Start()
     {
-        SetEnemysLayerMask();
+        _LaserVisual = GetComponent<LaserVisual>();
+        // SetEnemysLayerMask();
+
+        StartCoroutine(PassiveSearching());
     }
 
     public void GetDamage(float damageValue)
@@ -33,13 +38,30 @@ public class Soldier : MonoBehaviour, IDamagable
         }
     }
     
-    public IEnumerator Shoot(IDamagable target)
+    public IEnumerator Shooting()
     {
-        while (target != null)
+        Debug.Log(gameObject.name + " / Shooting");
+        IDamagable targetDamagable = _CurrentTarget.GetComponent<IDamagable>();
+        while (_CurrentTarget != null)
         {
-            target.GetDamage(_SoldierParams._Damage * Time.deltaTime);
+            _LaserVisual.DrawLaser(_CurrentTarget.transform);
+            targetDamagable.GetDamage(_SoldierParams._Damage * Time.deltaTime);
             yield return null;
         }
+
+        StartCoroutine(PassiveSearching());
+    }
+
+    public IEnumerator PassiveSearching()
+    {
+        Debug.Log(gameObject.name + " / PassiveSearching");
+        
+        Debug.Log(gameObject.name + " / " + _CurrentTarget);
+        if (_CurrentTarget == null && SearchClosestEnemy(ref _CurrentTarget))
+        {
+            StartCoroutine(Shooting());
+        }
+        yield return new WaitForSeconds(_PassiveEnemySearchingDelay);
     }
 
     private void Die()
@@ -48,38 +70,50 @@ public class Soldier : MonoBehaviour, IDamagable
     }
 
     [CanBeNull]
-    private IDamagable SearchEnemy()
+    private bool SearchClosestEnemy(ref GameObject enemy)
     {
+        Debug.Log(gameObject.name + " / enemy " + enemy);
+        Debug.Log(gameObject.name + " / SearchClosestEnemy");
         Collider closestEnemy = null;
         float distanceToClosestEnemy = Single.PositiveInfinity;
-        
-        if (Physics.OverlapSphereNonAlloc(transform.position, _SearchRadius, _OverlapResults, _EnemyLayerMask) > 0)
-        {
-            for (int i = 0; i < _OverlapResults.Length; i++)
-            {
-                float distance = Vector3.Distance(transform.position, _OverlapResults[i].transform.position);
 
-                if (distance < distanceToClosestEnemy)
-                {
-                    distanceToClosestEnemy = distance;
-                    closestEnemy = _OverlapResults[i];
-                }
+        int searchedEnemys =
+        Physics.OverlapSphereNonAlloc(transform.position, _SearchRadius, _OverlapResults, _EnemyLayerMask);
+    
+        Debug.Log(gameObject.name + " / _OverlapResults count " + _OverlapResults.Length);
+        for (int i = 0; i < searchedEnemys; i++)
+        {
+            if (!_OverlapResults[i].CompareTag("Soldier"))
+            {
+                continue;
+            }
+            Debug.Log(gameObject.name + " / " + transform.position + " / " + _OverlapResults[i].transform.position);
+            float distance = Vector3.Distance(transform.position, _OverlapResults[i].transform.position);
+
+            if (distance < distanceToClosestEnemy)
+            {
+                distanceToClosestEnemy = distance;
+                closestEnemy = _OverlapResults[i];
             }
         }
+        
 
-        return closestEnemy != null ? closestEnemy.GetComponent<IDamagable>() : null;
-    }
-
-    private void SetEnemysLayerMask()
-    {
-        if (_Team == Team.TEAM_1)
+        if (closestEnemy == null)
         {
-            _EnemyLayerMask = LayerMask.NameToLayer("Team2");
+            Debug.Log(gameObject.name + " / SearchClosestEnemy false");
+            return false;
         }
         else
         {
-            _EnemyLayerMask = LayerMask.NameToLayer("Team1");
+            Debug.Log(gameObject.name + " / SearchClosestEnemy true");
+            enemy = closestEnemy.gameObject;
+            return true;
         }
     }
+
+    // private void SetEnemysLayerMask()
+    // {
+    //     _EnemyLayerMask = LayerMask.NameToLayer(_Team == Team.TEAM_1 ? "Team2" : "Team1");
+    // }
 
 }
