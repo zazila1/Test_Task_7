@@ -48,11 +48,13 @@ public class Soldier : MonoBehaviour, IDamagable
         IDamagable targetDamagable = _CurrentTarget.GetComponent<IDamagable>();
         while (_CurrentTarget != null)
         {
+            transform.LookAt(_CurrentTarget.transform);
             _LaserVisual.DrawLaser(_CurrentTarget.transform);
             targetDamagable.GetDamage(_SoldierParams._Damage * Time.deltaTime);
             yield return null;
         }
 
+        _LaserVisual.StopLaser();
         StartCoroutine(PassiveSearching());
     }
 
@@ -66,6 +68,8 @@ public class Soldier : MonoBehaviour, IDamagable
             StartCoroutine(Shooting());
         }
         yield return new WaitForSeconds(_PassiveEnemySearchingDelay);
+        
+        StartCoroutine(PassiveSearching());
     }
 
     private void Die()
