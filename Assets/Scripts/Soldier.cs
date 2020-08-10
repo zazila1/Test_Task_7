@@ -18,10 +18,14 @@ public class Soldier : MonoBehaviour, IDamagable
     private GameObject _CurrentTarget = null;
     private bool _CanShoot;
     private float _PassiveEnemySearchingDelay = 1f;
-    
-    private void Start()
+
+    private void Awake()
     {
         _LaserVisual = GetComponent<LaserVisual>();
+    }
+
+    private void Start()
+    {
         // SetEnemysLayerMask();
 
         StartCoroutine(PassiveSearching());
@@ -66,7 +70,7 @@ public class Soldier : MonoBehaviour, IDamagable
 
     private void Die()
     {
-        Destroy(transform);
+        Destroy(gameObject);
     }
 
     [CanBeNull]

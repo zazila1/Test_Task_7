@@ -22,7 +22,7 @@ public class LaserVisual : MonoBehaviour
         _LineRenderer.positionCount = 0;
     }
     
-    void Start()
+    void Awake()
     {
         _LineRenderer = GetComponent<LineRenderer>();
     }
