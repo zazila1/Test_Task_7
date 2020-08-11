@@ -22,6 +22,10 @@ public class SoldierController : MonoBehaviour, IDamagable
     private float _PassiveEnemySearchingDelay = 1f;
     private float walkRangeOffset = 0.9f; // подходим ближе на 10% чем радиус атаки
 
+    private bool _isActive = false;
+
+    public Team Team => _Team;
+
     private void Awake()
     {
         _LaserVisualController = GetComponent<LaserVisualController>();
@@ -39,7 +43,7 @@ public class SoldierController : MonoBehaviour, IDamagable
     {
         _SoldierParams._Health -= damageValue;
 
-        if (_SoldierParams._Health <= 0)
+        if (_SoldierParams._Health <= 0 && _isActive)
         {
             _SoldierParams._Health = 0;
             Die();
@@ -85,9 +89,14 @@ public class SoldierController : MonoBehaviour, IDamagable
         StartCoroutine(PassiveSearching());
     }
 
+    public void Activate()
+    {
+        _isActive = true;
+    }
+
     public IEnumerator PassiveSearching()
     {
-        if (_CurrentTarget == null && SearchClosestEnemy(ref _CurrentTarget))
+        if (_isActive && _CurrentTarget == null && SearchClosestEnemy(ref _CurrentTarget))
         {
             StartCoroutine(WalkAndShoot());
         }
@@ -98,8 +107,11 @@ public class SoldierController : MonoBehaviour, IDamagable
 
     private void Die()
     {
+        _isActive = false;
         StopAllCoroutines();
         Destroy(gameObject);
+        
+        GameController.Instance.SoldierDied(this);
     }
 
     private bool SearchClosestEnemy(ref GameObject enemy)

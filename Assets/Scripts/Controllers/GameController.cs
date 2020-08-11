@@ -6,37 +6,15 @@ using UnityEngine.SceneManagement;
 public class GameController : MonoBehaviour
 {
     public static GameController Instance = null;
+
+    [SerializeField] private UIEndPanel _UiEndPanel;
     
     [SerializeField] private GameObject _Team1Soldiers;
     [SerializeField] private GameObject _Team2Soldiers;
 
-    [SerializeField] private int _Team1AliveCount;
-    [SerializeField] private int _Team2AliveCount;
-
-    public int Team1AliveCount
-    {
-        get => _Team1AliveCount;
-        set
-        {
-            if (_Team1AliveCount - value <= 0)
-            {
-                _Team1AliveCount = 0;
-                EndGame(Team.TEAM_2);
-            }
-        }
-    }
-    public int Team2AliveCount
-    {
-        get => _Team2AliveCount;
-        set
-        {
-            if (_Team2AliveCount - value <= 0)
-            {
-                _Team2AliveCount = 0;
-                EndGame(Team.TEAM_1);
-            }
-        }
-    }
+    [SerializeField] private List<SoldierController> _Team1;
+    [SerializeField] private List<SoldierController> _Team2;
+    
     private void Awake()
     {
         if (Instance == null)
@@ -48,25 +26,52 @@ public class GameController : MonoBehaviour
     
     private void Start()
     {
-        _Team1AliveCount = _Team1Soldiers.transform.childCount;
-        _Team2AliveCount = _Team2Soldiers.transform.childCount;
+        StartGame();
     }
 
-    public void SoldierDied(Team team)
+    public void StartGame()
     {
-        if (team == Team.TEAM_1)
+        foreach (var soldierController in _Team1)
         {
-            _Team1AliveCount--;
+            soldierController.Activate();
         }
-        else if (team == Team.TEAM_2)
+
+        foreach (var soldierController in _Team2)
         {
-            _Team2AliveCount--;
+            soldierController.Activate();
+        }
+    }
+
+    public void SoldierDied(SoldierController soldier)
+    {
+        if (soldier.Team == Team.TEAM_1)
+        {
+            _Team1.Remove(soldier);
+        }
+        else if (soldier.Team == Team.TEAM_2)
+        {
+            _Team2.Remove(soldier);
+        }
+        
+        CheckForGameEnded();
+    }
+
+    private void CheckForGameEnded()
+    {
+        if (_Team1.Count <= 0)
+        {
+            EndGame(Team.TEAM_2);
+        }
+        else if (_Team2.Count <= 0)
+        {
+            EndGame(Team.TEAM_1);
         }
     }
 
     private void EndGame(Team winner)
     {
-        
+        Debug.Log("EndGame");
+        _UiEndPanel.ShowEndGamePanel(winner, 15.6f);
     }
 
     public void RestartScene()
