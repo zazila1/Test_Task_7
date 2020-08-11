@@ -109,9 +109,9 @@ public class SoldierController : MonoBehaviour, IDamagable
     {
         _isActive = false;
         StopAllCoroutines();
-        Destroy(gameObject);
         
         GameController.Instance.SoldierDied(this);
+        Destroy(gameObject);
     }
 
     private bool SearchClosestEnemy(ref GameObject enemy)

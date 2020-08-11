@@ -8,13 +8,11 @@ public class GameController : MonoBehaviour
     public static GameController Instance = null;
 
     [SerializeField] private UIEndPanel _UiEndPanel;
-    
-    [SerializeField] private GameObject _Team1Soldiers;
-    [SerializeField] private GameObject _Team2Soldiers;
 
     [SerializeField] private List<SoldierController> _Team1;
     [SerializeField] private List<SoldierController> _Team2;
-    
+
+    private float _StartTime;
     private void Awake()
     {
         if (Instance == null)
@@ -26,7 +24,7 @@ public class GameController : MonoBehaviour
     
     private void Start()
     {
-        StartGame();
+        //StartGame();
     }
 
     public void StartGame()
@@ -40,6 +38,8 @@ public class GameController : MonoBehaviour
         {
             soldierController.Activate();
         }
+
+        _StartTime = Time.time;
     }
 
     public void SoldierDied(SoldierController soldier)
@@ -70,8 +70,7 @@ public class GameController : MonoBehaviour
 
     private void EndGame(Team winner)
     {
-        Debug.Log("EndGame");
-        _UiEndPanel.ShowEndGamePanel(winner, 15.6f);
+        _UiEndPanel.ShowEndGamePanel(winner, Time.time - _StartTime);
     }
 
     public void RestartScene()
