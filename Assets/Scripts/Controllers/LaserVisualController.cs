@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer))]
-public class LaserVisual : MonoBehaviour
+public class LaserVisualController : MonoBehaviour
 {
     [SerializeField] private Transform _LaserStartPoint;
 

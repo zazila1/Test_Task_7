@@ -11,7 +11,7 @@ public class SoldierController : MonoBehaviour, IDamagable
     [SerializeField] private SoldierParams _SoldierParams;
     [SerializeField] private LayerMask _EnemyLayerMask;
     
-    private LaserVisual _LaserVisual;
+    private LaserVisualController _LaserVisualController;
     private NavMeshAgent _NavMeshAgent;
     
     private float _SearchRadius = 100f;
@@ -20,16 +20,16 @@ public class SoldierController : MonoBehaviour, IDamagable
     private GameObject _CurrentTarget = null;
     private bool _TargetInRange = false;
     private float _PassiveEnemySearchingDelay = 1f;
+    private float walkRangeOffset = 0.9f; // подходим ближе на 10% чем радиус атаки
 
     private void Awake()
     {
-        _LaserVisual = GetComponent<LaserVisual>();
+        _LaserVisualController = GetComponent<LaserVisualController>();
         _NavMeshAgent = GetComponent<NavMeshAgent>();
     }
 
     private void Start()
     {
-        // SetEnemysLayerMask();
         _NavMeshAgent.speed = _SoldierParams._Speed;
 
         StartCoroutine(PassiveSearching());
@@ -53,13 +53,15 @@ public class SoldierController : MonoBehaviour, IDamagable
         while(_CurrentTarget != null)
         {
             transform.LookAt(_CurrentTarget.transform);
-            
-            if(Vector3.Distance(transform.position, _CurrentTarget.transform.position) > _SoldierParams._AttackRange)
+
+            float distance = Vector3.Distance(transform.position, _CurrentTarget.transform.position);
+            if(distance >= _SoldierParams._AttackRange * walkRangeOffset)
             {
-                _TargetInRange = false;
                 _NavMeshAgent.SetDestination(_CurrentTarget.transform.position);
+                
+                _TargetInRange = false || distance <= _SoldierParams._AttackRange;
             }
-            else
+            else 
             {
                 _TargetInRange = true;
                 _NavMeshAgent.SetDestination(transform.position);
@@ -67,19 +69,19 @@ public class SoldierController : MonoBehaviour, IDamagable
         
             if (_TargetInRange)
             {
-                _LaserVisual.DrawLaser(_CurrentTarget.transform);
+                _LaserVisualController.DrawLaser(_CurrentTarget.transform);
                 targetDamagable.GetDamage(_SoldierParams._Damage * Time.deltaTime);
             }
             else
             {
-                _LaserVisual.StopLaser();
+                _LaserVisualController.StopLaser();
             }
             
             yield return null;
         }
        
 
-        _LaserVisual.StopLaser();
+        _LaserVisualController.StopLaser();
         StartCoroutine(PassiveSearching());
     }
 
@@ -96,6 +98,7 @@ public class SoldierController : MonoBehaviour, IDamagable
 
     private void Die()
     {
+        StopAllCoroutines();
         Destroy(gameObject);
     }
 
@@ -107,14 +110,12 @@ public class SoldierController : MonoBehaviour, IDamagable
         int searchedEnemysCount =
         Physics.OverlapSphereNonAlloc(transform.position, _SearchRadius, _OverlapResults, _EnemyLayerMask);
     
-        //Debug.Log(gameObject.name + " / _OverlapResults count " + _OverlapResults.Length);
         for (int i = 0; i < searchedEnemysCount; i++)
         {
             if (!_OverlapResults[i].CompareTag("Soldier"))
             {
                 continue;
             }
-            //Debug.Log(gameObject.name + " / " + transform.position + " / " + _OverlapResults[i].transform.position);
             float distance = Vector3.Distance(transform.position, _OverlapResults[i].transform.position);
 
             if (distance < distanceToClosestEnemy)
@@ -127,20 +128,13 @@ public class SoldierController : MonoBehaviour, IDamagable
 
         if (closestEnemy == null)
         {
-            //Debug.Log(gameObject.name + " / SearchClosestEnemy false");
             return false;
         }
         else
         {
-            //Debug.Log(gameObject.name + " / SearchClosestEnemy true");
             enemy = closestEnemy.gameObject;
             return true;
         }
     }
-
-    // private void SetEnemysLayerMask()
-    // {
-    //     _EnemyLayerMask = LayerMask.NameToLayer(_Team == Team.TEAM_1 ? "Team2" : "Team1");
-    // }
 
 }
